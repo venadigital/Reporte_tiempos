@@ -45,3 +45,6 @@ next-env.d.ts
 
 # documento de referencia del cliente anterior: no se publica
 /docs/Documentacion*.md
+
+# herramientas locales
+/.claude/

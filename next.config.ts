@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  experimental: {
+    serverActions: {
+      // La foto pesa unos 60 KB, pero el servidor acepta hasta 3 MB: se deja holgura.
+      bodySizeLimit: "4mb",
+    },
+  },
   turbopack: {
     rules: {
       "*.css": {

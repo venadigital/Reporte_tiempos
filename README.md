@@ -12,8 +12,8 @@ Storage) · Vercel. Web instalable (PWA): la misma app sirve en celular y en com
 
 - [x] Base de datos: perfiles y roles, bitácora, configuración, turnos, pausas, PIN, festivos
 - [x] Reglas de marcación (celular y quiosco), correcciones y cálculo de horas, con pruebas
-- [ ] Inicio de sesión y pantalla de inicio por rol
-- [ ] Pantalla "Mi turno" con cámara
+- [x] Inicio de sesión y pantalla de inicio por rol
+- [x] Pantalla "Mi turno" con cámara
 - [ ] Ficha del empleado (interruptor y PIN)
 - [ ] Quiosco
 - [ ] Reporte, detalle y correcciones
@@ -58,12 +58,13 @@ que **empieza** el turno, no por día calendario.
 npm install
 cp .env.example .env.local   # y llenar las llaves del proyecto de Supabase
 npm run dev
+npm test                     # pruebas de pantallas y reglas de la aplicación
 ```
 
 ## Base de datos
 
 - `supabase/migrations/`: el esquema, en orden.
-- `supabase/tests/`: pruebas en SQL. Cada archivo corre dentro de una transacción que se
+- `supabase/tests/`: pruebas en SQL (cálculo de horas, reglas y permisos, almacén de fotos). Cada archivo corre dentro de una transacción que se
   revierte (no deja datos) y devuelve una fila con cuántas pasaron y cuáles fallaron. Se
   ejecutan pegándolas en el editor SQL de Supabase o con `psql -f`.
 - `scripts/festivos-colombia.mjs`: genera los festivos. Están cargados hasta 2035; cuando
