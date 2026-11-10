@@ -7,8 +7,8 @@ import { crearClienteServicio } from "@/lib/supabase/servicio";
 import { obtenerPerfil } from "@/lib/auth/sesion";
 import { administraEmpleados } from "@/lib/auth/permisos";
 import { validarClave, validarCorreo, validarDatos, validarPin } from "@/lib/empleados";
+import type { Resultado } from "@/components/ui";
 
-export type Resultado = { ok: boolean; mensaje: string } | null;
 
 const fallo = (mensaje: string): Resultado => ({ ok: false, mensaje });
 const SIN_PERMISO = "Solo el administrador principal puede hacer esto.";

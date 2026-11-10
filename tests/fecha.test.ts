@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { diaISO, fechaLarga, horaConDia, horaCorta, partes, primerNombre, saludo } from "@/lib/fecha";
+import { diaISO, fechaLarga, horaConDia, horaCorta, horaPartida, partes, prefijoDia, primerNombre, saludo } from "@/lib/fecha";
 
 // Todos los instantes van en UTC, como los entrega la base. Colombia es UTC-5.
 describe("hora y fecha en la zona del negocio", () => {
@@ -40,6 +40,11 @@ describe("la hora de una marcación con su día (turnos de noche)", () => {
   });
   it("anoche: dice ayer", () => {
     expect(horaConDia("2026-08-26T03:02:00Z", ahora)).toBe("ayer a las 10:02 p. m.");
+  });
+  it("se parte en prefijo y hora para pintar el número grande", () => {
+    expect(prefijoDia("2026-08-26T03:02:00Z", ahora)).toBe("ayer a las");
+    expect(horaPartida("2026-08-26T03:02:00Z")).toEqual({ hora: "10:02", periodo: "p. m." });
+    expect(horaPartida("2026-08-26T17:00:00Z")).toEqual({ hora: "12:00", periodo: "p. m." });
   });
   it("más atrás: dice el día", () => {
     expect(horaConDia("2026-08-24T12:02:00Z", ahora)).toBe("el lunes 24 de agosto a las 7:02 a. m.");

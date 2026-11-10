@@ -10,8 +10,8 @@ export function EnlaceMenu({ href, texto }: { href: string; texto: string }) {
     <Link
       href={href}
       aria-current={activo ? "page" : undefined}
-      className={`rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap ${
-        activo ? "bg-tinta text-white" : "text-suave hover:text-tinta"
+      className={`rounded-[10px] px-3.5 py-2 text-[15px] whitespace-nowrap ${
+        activo ? "bg-relleno font-semibold text-tinta" : "font-medium text-suave hover:text-tinta"
       }`}
     >
       {texto}

@@ -12,7 +12,7 @@ export default async function MarcoApp({ children }: { children: React.ReactNode
 
   const salir = (
     <form action={cerrarSesion}>
-      <button type="submit" className="rounded-lg px-3 py-1.5 text-sm font-medium text-suave hover:text-tinta">
+      <button type="submit" className="min-h-11 px-1 text-[15px] font-medium text-accion hover:text-accion-fuerte">
         Salir
       </button>
     </form>
@@ -20,9 +20,9 @@ export default async function MarcoApp({ children }: { children: React.ReactNode
 
   if (!perfil.activo) {
     return (
-      <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center px-6 py-12">
-        <h1 className="text-xl font-semibold">Tu cuenta está desactivada</h1>
-        <p className="mt-2 mb-6 text-suave">Habla con el administrador para que la active de nuevo.</p>
+      <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-2 px-6 py-12">
+        <h1 className="text-[28px] leading-[34px] font-bold tracking-[-0.4px]">Tu cuenta está desactivada</h1>
+        <p className="mb-4 text-base text-suave">Habla con el administrador para que la active de nuevo.</p>
         {salir}
       </main>
     );
@@ -32,14 +32,14 @@ export default async function MarcoApp({ children }: { children: React.ReactNode
 
   return (
     <>
-      <header className="border-b border-linea bg-white">
-        <div className="mx-auto flex w-full max-w-5xl items-center gap-2 px-4 py-2.5">
+      <header className="sticky top-0 z-10 border-b border-linea bg-white/90 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-[1120px] items-center gap-x-5 gap-y-2 px-4 py-1.5 sm:px-6">
           <nav aria-label="Principal" className="flex flex-1 items-center gap-1 overflow-x-auto">
             {entradas.map((e) => (
               <EnlaceMenu key={e.href} href={e.href} texto={e.texto} />
             ))}
           </nav>
-          <span className="hidden text-sm text-suave sm:inline">{perfil.nombre}</span>
+          <span className="hidden text-[15px] text-suave sm:inline">{perfil.nombre}</span>
           {salir}
         </div>
       </header>

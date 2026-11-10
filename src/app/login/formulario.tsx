@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { Aviso, botonPrincipal, campoFila, fila } from "@/components/ui";
 import { iniciarSesion, type EstadoLogin } from "./actions";
 
 const inicial: EstadoLogin = { error: null };
@@ -10,39 +11,33 @@ export function FormularioLogin() {
 
   return (
     <form action={accion} className="flex flex-col gap-4">
-      <label className="flex flex-col gap-1.5 text-sm font-medium">
-        Correo
-        <input
-          name="correo"
-          type="email"
-          autoComplete="username"
-          inputMode="email"
-          required
-          className="h-12 rounded-xl border border-linea bg-white px-4 text-base font-normal outline-none focus:border-tinta"
-        />
-      </label>
-      <label className="flex flex-col gap-1.5 text-sm font-medium">
-        Contraseña
-        <input
-          name="clave"
-          type="password"
-          autoComplete="current-password"
-          required
-          className="h-12 rounded-xl border border-linea bg-white px-4 text-base font-normal outline-none focus:border-tinta"
-        />
-      </label>
+      <div className="divide-y divide-linea overflow-hidden rounded-2xl bg-white">
+        <label className={`${fila} min-h-14`}>
+          <span className="w-24 font-medium">Correo</span>
+          <input
+            name="correo"
+            type="email"
+            autoComplete="username"
+            inputMode="email"
+            required
+            className={`${campoFila} text-left`}
+          />
+        </label>
+        <label className={`${fila} min-h-14`}>
+          <span className="w-24 font-medium">Contraseña</span>
+          <input
+            name="clave"
+            type="password"
+            autoComplete="current-password"
+            required
+            className={`${campoFila} text-left`}
+          />
+        </label>
+      </div>
 
-      {estado.error && (
-        <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">
-          {estado.error}
-        </p>
-      )}
+      <Aviso resultado={estado.error ? { ok: false, mensaje: estado.error } : null} />
 
-      <button
-        type="submit"
-        disabled={enviando}
-        className="mt-2 h-12 rounded-xl bg-tinta text-base font-semibold text-white disabled:opacity-60"
-      >
+      <button type="submit" disabled={enviando} className={`${botonPrincipal} h-14`}>
         {enviando ? "Entrando…" : "Entrar"}
       </button>
     </form>

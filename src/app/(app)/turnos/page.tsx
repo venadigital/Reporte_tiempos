@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { exigirPerfil } from "@/lib/auth/sesion";
 import { crearCliente } from "@/lib/supabase/server";
 import { obtenerConfiguracion } from "@/lib/configuracion";
-import { fechaLarga, horaConDia, primerNombre, saludo } from "@/lib/fecha";
+import { fechaLarga, horaConDia, horaPartida, prefijoDia, primerNombre, saludo } from "@/lib/fecha";
 import { derivarEstado, textoFoto, type TurnoAbierto } from "@/lib/turnos";
 import { MarcarTurno } from "./marcar-turno";
-import { PantallaNoMarca, type VistaTurno } from "./pantalla-turno";
+import { PantallaNoMarca, type Momento, type VistaTurno } from "./pantalla-turno";
 
 export const metadata: Metadata = { title: "Mi turno" };
 
@@ -44,13 +44,18 @@ export default async function PaginaTurnos() {
   });
 
   // Las horas viajan ya escritas: así el servidor y el navegador pintan lo mismo.
+  const momento = (instante: string): Momento => ({
+    prefijo: prefijoDia(instante, ahora, zona),
+    ...horaPartida(instante, zona),
+  });
+
   let vista: VistaTurno;
   switch (estado.tipo) {
     case "en_turno":
-      vista = { tipo: "en_turno", entrada: horaConDia(estado.inicioEl, ahora, zona) };
+      vista = { tipo: "en_turno", entrada: momento(estado.inicioEl) };
       break;
     case "en_almuerzo":
-      vista = { tipo: "en_almuerzo", salio: horaConDia(estado.pausaInicioEl, ahora, zona) };
+      vista = { tipo: "en_almuerzo", salio: momento(estado.pausaInicioEl) };
       break;
     default:
       vista = {

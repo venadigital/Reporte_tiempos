@@ -60,16 +60,16 @@ describe("reglas de forma de la ficha", () => {
 describe("formularios de empleados", () => {
   it("la ficha carga los datos guardados, con el interruptor y el estado", () => {
     render(<FormularioDatos empleado={empleado} />);
-    expect((screen.getByLabelText(/Nombre completo/) as HTMLInputElement).value).toBe("Camila Rojas");
+    expect((screen.getByLabelText(/Nombre/) as HTMLInputElement).value).toBe("Camila Rojas");
     expect((screen.getByLabelText(/Cargo/) as HTMLInputElement).value).toBe("Recepción");
     expect((screen.getByLabelText(/Rol/) as HTMLSelectElement).value).toBe("empleado");
-    expect((screen.getByRole("checkbox", { name: /Registra turnos/ }) as HTMLInputElement).checked).toBe(true);
-    expect((screen.getByRole("checkbox", { name: /Cuenta activa/ }) as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByRole("switch", { name: /Registra turnos/ }) as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByRole("switch", { name: /Cuenta activa/ }) as HTMLInputElement).checked).toBe(true);
   });
 
   it("al elegir el rol quiosco se bloquea el interruptor de turnos", () => {
     render(<FormularioDatos empleado={empleado} />);
-    const interruptor = () => screen.getByRole("checkbox", { name: /Registra turnos/ }) as HTMLInputElement;
+    const interruptor = () => screen.getByRole("switch", { name: /Registra turnos/ }) as HTMLInputElement;
     expect(interruptor().disabled).toBe(false);
     fireEvent.change(screen.getByLabelText(/Rol/), { target: { value: "quiosco" } });
     expect(interruptor().disabled).toBe(true);
@@ -80,7 +80,7 @@ describe("formularios de empleados", () => {
     render(<FormularioNuevo />);
     expect(screen.getByLabelText(/Correo/)).toBeTruthy();
     expect((screen.getByLabelText(/Contraseña inicial/) as HTMLInputElement).type).toBe("password");
-    expect(screen.queryByRole("checkbox", { name: /Cuenta activa/ })).toBeNull();
+    expect(screen.queryByRole("switch", { name: /Cuenta activa/ })).toBeNull();
     expect(screen.getByRole("button", { name: "Crear empleado" })).toBeTruthy();
   });
 
@@ -95,5 +95,14 @@ describe("formularios de empleados", () => {
     expect(pin.maxLength).toBe(4);
     expect(pin.pattern).toBe("[0-9]{4}");
     expect(screen.getByRole("button", { name: "Quitar PIN" })).toBeTruthy();
+  });
+
+  it("el estado del PIN se ve en la ficha, nunca el valor", () => {
+    const { unmount } = render(<FormularioPin empleado={{ ...empleado, tiene_pin: true, pin_bloqueado: true }} />);
+    expect(screen.getByText("PIN bloqueado")).toBeTruthy();
+    unmount();
+    render(<FormularioPin empleado={empleado} />);
+    expect(screen.getByText("Sin PIN")).toBeTruthy();
+    expect((screen.getByLabelText(/PIN de 4 dígitos/) as HTMLInputElement).value).toBe("");
   });
 });

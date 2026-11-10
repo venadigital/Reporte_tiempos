@@ -52,6 +52,14 @@ de un turno abierto, días que se guardan las fotos e intentos del PIN.
 Los turnos de noche se cuentan como una sola jornada: el tope diario se mide por el día en
 que **empieza** el turno, no por día calendario.
 
+## Diseño
+
+Fondo gris claro con tarjetas blancas, tipografía del sistema, un solo color de acción
+(azul) y verde, ámbar y rojo reservados para estados. Los colores viven como variables en
+`src/app/globals.css` y las piezas compartidas (botones, listas agrupadas, interruptores,
+avisos) en `src/components/ui.tsx`. En celular la acción principal va abajo, al alcance del
+pulgar; los botones miden al menos 44 px y el texto cumple contraste 4,5:1.
+
 ## Desarrollo
 
 ```bash

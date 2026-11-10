@@ -6,6 +6,7 @@
 
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { FOTO_CALIDAD, FOTO_LADO_PX } from "@/lib/turnos";
+import { botonPrincipal, botonSuave } from "@/components/ui";
 
 export type FalloCamara = "bloqueada" | "sin_camara" | "ocupada" | "insegura" | "otro";
 
@@ -88,31 +89,32 @@ export function CamaraError({
 }) {
   const texto = TEXTOS_FALLO[fallo];
   return (
-    <div role="alert" className="flex w-full max-w-sm flex-col gap-4 rounded-3xl bg-white p-6 text-tinta">
-      <h2 className="text-xl font-semibold">{texto.titulo}</h2>
-      <p className="text-suave">{texto.detalle}</p>
+    <div role="alert" className="m-auto flex w-full max-w-sm flex-col gap-4 rounded-[28px] bg-white p-6 text-tinta">
+      <h2 className="text-[22px] leading-7 font-bold tracking-[-0.3px]">{texto.titulo}</h2>
+      <p className="text-base leading-[22px] text-suave">{texto.detalle}</p>
       {texto.pasos && (
-        <ol className="list-decimal space-y-1 pl-5 text-sm">
+        <ol className="list-decimal space-y-1.5 pl-5 text-[15px] leading-5">
           {texto.pasos.map((paso) => (
             <li key={paso}>{paso}</li>
           ))}
         </ol>
       )}
-      <div className="mt-2 flex flex-col gap-2">
-        <button type="button" onClick={onReintentar} className="h-12 rounded-xl bg-tinta font-semibold text-white">
+      <div className="mt-2 flex flex-col gap-2.5">
+        <button type="button" onClick={onReintentar} className={botonPrincipal}>
           Intentar de nuevo
         </button>
-        <button type="button" onClick={onCerrar} className="h-12 rounded-xl border border-linea font-medium">
+        <button type="button" onClick={onCerrar} className={botonSuave}>
           Volver
         </button>
       </div>
-      <p className="border-t border-linea pt-4 text-sm text-suave">{PIE_FALLO}</p>
+      <p className="border-t border-linea pt-4 text-[13px] leading-[18px] text-suave">{PIE_FALLO}</p>
     </div>
   );
 }
 
 export function CamaraVisor({
   videoRef,
+  titulo,
   lista,
   enviando,
   pie,
@@ -120,6 +122,7 @@ export function CamaraVisor({
   onCancelar,
 }: {
   videoRef: RefObject<HTMLVideoElement | null>;
+  titulo: string;
   lista: boolean;
   enviando: boolean;
   pie: string;
@@ -127,10 +130,20 @@ export function CamaraVisor({
   onCancelar: () => void;
 }) {
   return (
-    <div className="flex w-full max-w-sm flex-col items-center gap-5 text-white">
-      <p className="text-lg font-medium">Centra tu cara en el óvalo</p>
+    <div className="mx-auto flex w-full max-w-sm flex-1 flex-col gap-7 text-white">
+      <header className="grid h-11 grid-cols-[1fr_auto_1fr] items-center">
+        <button
+          type="button"
+          onClick={onCancelar}
+          disabled={enviando}
+          className="h-11 justify-self-start text-[17px] text-[#8ab8ff] disabled:opacity-40"
+        >
+          Cancelar
+        </button>
+        <h2 className="text-[17px] font-semibold">{titulo}</h2>
+      </header>
 
-      <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-black">
+      <div className="relative aspect-square w-full overflow-hidden rounded-[28px] bg-[#1c1c1e]">
         {/* El visor va espejado, como un espejo; la foto se guarda sin espejo. */}
         <video
           ref={videoRef}
@@ -142,41 +155,42 @@ export function CamaraVisor({
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-[18%] inset-y-[10%] rounded-[50%] border-2 border-dashed border-white/80"
+          className="pointer-events-none absolute inset-x-[20%] inset-y-[10%] rounded-[50%] border-2 border-dashed border-white/85"
         />
         {!lista && (
-          <p className="absolute inset-0 flex items-center justify-center bg-black/60 text-sm">Abriendo la cámara…</p>
+          <p className="absolute inset-0 flex items-center justify-center bg-black/60 text-[15px]">Abriendo la cámara…</p>
         )}
       </div>
 
-      <button
-        type="button"
-        onClick={onCapturar}
-        disabled={!lista || enviando}
-        aria-label="Tomar la foto"
-        className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-white disabled:opacity-40"
-      >
-        <span className="h-14 w-14 rounded-full bg-white" />
-      </button>
+      <p className="text-center text-xl leading-[26px] font-semibold">Centra tu cara en el óvalo</p>
 
-      <p className="text-center text-sm text-white/75" aria-live="polite">
-        {enviando ? "Registrando…" : pie}
-      </p>
-
-      <button type="button" onClick={onCancelar} disabled={enviando} className="text-sm underline disabled:opacity-40">
-        Cancelar
-      </button>
+      <div className="mt-auto flex flex-col items-center gap-5">
+        <button
+          type="button"
+          onClick={onCapturar}
+          disabled={!lista || enviando}
+          aria-label="Tomar la foto"
+          className="flex h-[84px] w-[84px] items-center justify-center rounded-full border-4 border-white transition-transform active:scale-95 disabled:opacity-40"
+        >
+          <span className="h-[66px] w-[66px] rounded-full bg-white" />
+        </button>
+        <p className="px-3 text-center text-[13px] leading-[18px] text-[#c7c7cc]" aria-live="polite">
+          {enviando ? "Registrando…" : pie}
+        </p>
+      </div>
     </div>
   );
 }
 
 /** Abre la cámara frontal, toma una foto cuadrada y la entrega como JPEG. */
 export function Camara({
+  titulo,
   pie,
   enviando,
   onFoto,
   onCancelar,
 }: {
+  titulo: string;
   pie: string;
   enviando: boolean;
   onFoto: (foto: Blob) => void;
@@ -248,14 +262,15 @@ export function Camara({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Tomar la foto"
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-y-auto bg-neutral-950 p-6"
+      aria-label={titulo}
+      className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-black px-5 pt-6 pb-9"
     >
       {fallo ? (
         <CamaraError fallo={fallo} onReintentar={reintentar} onCerrar={onCancelar} />
       ) : (
         <CamaraVisor
           videoRef={videoRef}
+          titulo={titulo}
           lista={fase === "lista"}
           enviando={enviando}
           pie={pie}

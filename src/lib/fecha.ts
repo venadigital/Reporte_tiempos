@@ -67,11 +67,17 @@ export function diaISO(valor: Instante, zona: string = ZONA): string {
   return `${p.anio}-${dos(p.mes)}-${dos(p.dia)}`;
 }
 
-/** "7:02 a. m." */
-export function horaCorta(valor: Instante, zona: string = ZONA): string {
+/** La hora en dos piezas, para pintar el número grande: { hora: "7:02", periodo: "a. m." } */
+export function horaPartida(valor: Instante, zona: string = ZONA): { hora: string; periodo: string } {
   const { hora, minuto } = partes(valor, zona);
   const h12 = hora % 12 === 0 ? 12 : hora % 12;
-  return `${h12}:${dos(minuto)} ${hora < 12 ? "a. m." : "p. m."}`;
+  return { hora: `${h12}:${dos(minuto)}`, periodo: hora < 12 ? "a. m." : "p. m." };
+}
+
+/** "7:02 a. m." */
+export function horaCorta(valor: Instante, zona: string = ZONA): string {
+  const { hora, periodo } = horaPartida(valor, zona);
+  return `${hora} ${periodo}`;
 }
 
 /** "martes 26 de agosto" */
@@ -97,15 +103,19 @@ function diasEntre(desde: Instante, hasta: Instante, zona: string): number {
 }
 
 /**
- * La hora de una marcación dicha con su día, pensando en los turnos de noche:
- * "a las 7:02 a. m." (hoy), "ayer a las 10:02 p. m." o "el lunes 24 de agosto a las 7:02 a. m."
+ * Cómo se dice el día de una marcación, pensando en los turnos de noche:
+ * "a las" (hoy), "ayer a las" o "el lunes 24 de agosto a las".
  */
-export function horaConDia(valor: Instante, ahora: Instante, zona: string = ZONA): string {
-  const hora = horaCorta(valor, zona);
+export function prefijoDia(valor: Instante, ahora: Instante, zona: string = ZONA): string {
   const dias = diasEntre(valor, ahora, zona);
-  if (dias === 0) return `a las ${hora}`;
-  if (dias === 1) return `ayer a las ${hora}`;
-  return `el ${fechaLarga(valor, zona)} a las ${hora}`;
+  if (dias === 0) return "a las";
+  if (dias === 1) return "ayer a las";
+  return `el ${fechaLarga(valor, zona)} a las`;
+}
+
+/** "a las 7:02 a. m.", "ayer a las 10:02 p. m." o "el lunes 24 de agosto a las 7:02 a. m." */
+export function horaConDia(valor: Instante, ahora: Instante, zona: string = ZONA): string {
+  return `${prefijoDia(valor, ahora, zona)} ${horaCorta(valor, zona)}`;
 }
 
 /** Primer nombre, para el saludo. */

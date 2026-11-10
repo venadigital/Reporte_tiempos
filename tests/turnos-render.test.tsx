@@ -16,6 +16,8 @@ import {
 
 vi.mock("@/app/(app)/turnos/actions", () => ({ marcar: vi.fn() }));
 
+const ENTRADA = { prefijo: "a las", hora: "7:02", periodo: "a. m." };
+const SALIO = { prefijo: "a las", hora: "12:31", periodo: "p. m." };
 const comunes = { nombre: "Camila", fecha: "miércoles 26 de agosto", saludo: "Buenos días", aviso: null, ocupado: false };
 const pinta = (vista: VistaTurno, onAccion = vi.fn()) => {
   render(<PantallaTurno {...comunes} vista={vista} onAccion={onAccion} />);
@@ -41,19 +43,28 @@ describe("Mi turno: cada estado se pinta bien", () => {
   });
 
   it("en turno: dice desde cuándo y ofrece cerrar o almorzar", () => {
-    const onAccion = pinta({ tipo: "en_turno", entrada: "a las 7:02 a. m." });
-    expect(screen.getByText("Estás en turno")).toBeTruthy();
-    expect(screen.getByText("Entraste a las 7:02 a. m.")).toBeTruthy();
+    const onAccion = pinta({ tipo: "en_turno", entrada: ENTRADA });
+    expect(screen.getByText("Turno abierto")).toBeTruthy();
+    expect(screen.getByText("Entraste a las")).toBeTruthy();
+    expect(document.body.textContent).toContain("7:02 a. m.");
     expect(boton("Iniciar turno")).toBeNull();
     fireEvent.click(boton("Cerrar turno")!);
     fireEvent.click(boton("Salgo a almorzar")!);
     expect(onAccion.mock.calls.map((c) => c[0])).toEqual(["salida", "pausa_inicio"]);
   });
 
+  it("turno de noche: dice que entró ayer", () => {
+    pinta({ tipo: "en_turno", entrada: { prefijo: "ayer a las", hora: "10:02", periodo: "p. m." } });
+    expect(screen.getByText("Entraste ayer a las")).toBeTruthy();
+    expect(document.body.textContent).toContain("10:02 p. m.");
+  });
+
   it("en almuerzo: SOLO regresar, y explica por qué no se puede cerrar", () => {
-    const onAccion = pinta({ tipo: "en_almuerzo", salio: "a las 12:31 p. m." });
-    expect(screen.getByText("Estás almorzando")).toBeTruthy();
-    expect(screen.getByText("Saliste a las 12:31 p. m.")).toBeTruthy();
+    const onAccion = pinta({ tipo: "en_almuerzo", salio: SALIO });
+    expect(screen.getByText("Turno en pausa")).toBeTruthy();
+    expect(screen.getByText("Saliste a almorzar a las")).toBeTruthy();
+    expect(document.body.textContent).toContain("12:31 p. m.");
+    expect(screen.getByText("Este tiempo no cuenta como trabajado.")).toBeTruthy();
     expect(screen.getByText(/No se puede cerrar el turno con el almuerzo abierto/)).toBeTruthy();
     expect(boton("Cerrar turno")).toBeNull();
     expect(boton("Salgo a almorzar")).toBeNull();
@@ -64,12 +75,12 @@ describe("Mi turno: cada estado se pinta bien", () => {
 
   it("la confirmación se anuncia; el error, como alerta", () => {
     const { rerender } = render(
-      <PantallaTurno {...comunes} vista={{ tipo: "en_turno", entrada: "a las 7:02 a. m." }} onAccion={vi.fn()}
+      <PantallaTurno {...comunes} vista={{ tipo: "en_turno", entrada: ENTRADA }} onAccion={vi.fn()}
         aviso={{ ok: true, mensaje: "Turno iniciado a las 7:02 a. m." }} />,
     );
     expect(screen.getByRole("status").textContent).toBe("Turno iniciado a las 7:02 a. m.");
     rerender(
-      <PantallaTurno {...comunes} vista={{ tipo: "en_turno", entrada: "a las 7:02 a. m." }} onAccion={vi.fn()}
+      <PantallaTurno {...comunes} vista={{ tipo: "en_turno", entrada: ENTRADA }} onAccion={vi.fn()}
         aviso={{ ok: false, mensaje: "Primero marca tu regreso del almuerzo." }} />,
     );
     expect(screen.getByRole("alert").textContent).toBe("Primero marca tu regreso del almuerzo.");
@@ -78,8 +89,8 @@ describe("Mi turno: cada estado se pinta bien", () => {
   it("la pantalla del empleado nunca muestra horas acumuladas", () => {
     for (const vista of [
       { tipo: "sin_turno", pendiente: null },
-      { tipo: "en_turno", entrada: "a las 7:02 a. m." },
-      { tipo: "en_almuerzo", salio: "a las 12:31 p. m." },
+      { tipo: "en_turno", entrada: ENTRADA },
+      { tipo: "en_almuerzo", salio: SALIO },
     ] as VistaTurno[]) {
       const { container, unmount } = render(<PantallaTurno {...comunes} vista={vista} onAccion={vi.fn()} />);
       expect(container.textContent).not.toMatch(/horas|total|extra|semana|quincena|\d+:\d\d h/i);
@@ -102,7 +113,7 @@ describe("Mi turno: marcar", () => {
 
   it("el almuerzo son dos toques, sin cámara, y confirma con la hora", async () => {
     vi.mocked(marcar).mockResolvedValue({ ok: true, mensaje: "Salida a almorzar registrada a las 12:31 p. m." });
-    render(<MarcarTurno {...props} vista={{ tipo: "en_turno", entrada: "a las 7:02 a. m." }} />);
+    render(<MarcarTurno {...props} vista={{ tipo: "en_turno", entrada: ENTRADA }} />);
     fireEvent.click(boton("Salgo a almorzar")!);
 
     await waitFor(() => expect(screen.getByRole("status").textContent).toContain("12:31 p. m."));
@@ -116,20 +127,20 @@ describe("Mi turno: marcar", () => {
   it("la entrada abre la cámara y no marca hasta que haya foto", () => {
     render(<MarcarTurno {...props} vista={{ tipo: "sin_turno", pendiente: null }} />);
     fireEvent.click(boton("Iniciar turno")!);
-    expect(screen.getByRole("dialog", { name: "Tomar la foto" })).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: "Foto de entrada" })).toBeTruthy();
     expect(marcar).not.toHaveBeenCalled();
   });
 
   it("si la base rechaza la marcación, muestra su mensaje", async () => {
     vi.mocked(marcar).mockResolvedValue({ ok: false, mensaje: "No tienes un turno abierto." });
-    render(<MarcarTurno {...props} vista={{ tipo: "en_turno", entrada: "a las 7:02 a. m." }} />);
+    render(<MarcarTurno {...props} vista={{ tipo: "en_turno", entrada: ENTRADA }} />);
     fireEvent.click(boton("Salgo a almorzar")!);
     await waitFor(() => expect(screen.getByRole("alert").textContent).toBe("No tienes un turno abierto."));
   });
 
   it("sin conexión lo dice, no se queda colgada", async () => {
     vi.mocked(marcar).mockImplementation(() => Promise.reject(new Error("fetch failed")));
-    render(<MarcarTurno {...props} vista={{ tipo: "en_turno", entrada: "a las 7:02 a. m." }} />);
+    render(<MarcarTurno {...props} vista={{ tipo: "en_turno", entrada: ENTRADA }} />);
     fireEvent.click(boton("Salgo a almorzar")!);
     await waitFor(() => expect(screen.getByRole("alert").textContent).toMatch(/No hay conexión/));
   });
@@ -170,18 +181,18 @@ describe("cámara", () => {
     const onCapturar = vi.fn();
     const ref = { current: null };
     const { rerender } = render(
-      <CamaraVisor videoRef={ref} lista={false} enviando={false} pie="pie" onCapturar={onCapturar} onCancelar={vi.fn()} />,
+      <CamaraVisor titulo="Foto de entrada" videoRef={ref} lista={false} enviando={false} pie="pie" onCapturar={onCapturar} onCancelar={vi.fn()} />,
     );
     const disparador = () => screen.getByRole("button", { name: "Tomar la foto" }) as HTMLButtonElement;
     expect(disparador().disabled).toBe(true);
     expect(screen.getByLabelText("Vista de la cámara").className).toContain("-scale-x-100");
 
-    rerender(<CamaraVisor videoRef={ref} lista enviando={false} pie="pie" onCapturar={onCapturar} onCancelar={vi.fn()} />);
+    rerender(<CamaraVisor titulo="Foto de entrada" videoRef={ref} lista enviando={false} pie="pie" onCapturar={onCapturar} onCancelar={vi.fn()} />);
     expect(disparador().disabled).toBe(false);
     fireEvent.click(disparador());
     expect(onCapturar).toHaveBeenCalledOnce();
 
-    rerender(<CamaraVisor videoRef={ref} lista enviando pie="pie" onCapturar={onCapturar} onCancelar={vi.fn()} />);
+    rerender(<CamaraVisor titulo="Foto de entrada" videoRef={ref} lista enviando pie="pie" onCapturar={onCapturar} onCancelar={vi.fn()} />);
     expect(disparador().disabled).toBe(true);
     expect(screen.getByText("Registrando…")).toBeTruthy();
   });
@@ -193,14 +204,14 @@ describe("cámara", () => {
 
   it("sin conexión segura (o sin cámara en el navegador) lo explica", () => {
     delete (navigator as unknown as Record<string, unknown>).mediaDevices;
-    render(<Camara pie="pie" enviando={false} onFoto={vi.fn()} onCancelar={vi.fn()} />);
+    render(<Camara titulo="Foto de entrada" pie="pie" enviando={false} onFoto={vi.fn()} onCancelar={vi.fn()} />);
     expect(screen.getByRole("heading", { name: "La cámara no está disponible aquí" })).toBeTruthy();
   });
 
   it("permiso negado: dice que está bloqueada y permite reintentar", async () => {
     const getUserMedia = vi.fn().mockRejectedValue(error("NotAllowedError"));
     conCamara(getUserMedia);
-    render(<Camara pie="pie" enviando={false} onFoto={vi.fn()} onCancelar={vi.fn()} />);
+    render(<Camara titulo="Foto de entrada" pie="pie" enviando={false} onFoto={vi.fn()} onCancelar={vi.fn()} />);
     expect(await screen.findByRole("heading", { name: "La cámara está bloqueada" })).toBeTruthy();
     expect(getUserMedia).toHaveBeenCalledWith({ video: { facingMode: "user" }, audio: false });
 
@@ -211,7 +222,7 @@ describe("cámara", () => {
   it("al cerrar apaga la cámara", async () => {
     const stop = vi.fn();
     conCamara(vi.fn().mockResolvedValue({ getTracks: () => [{ stop }] }));
-    const { unmount } = render(<Camara pie="pie" enviando={false} onFoto={vi.fn()} onCancelar={vi.fn()} />);
+    const { unmount } = render(<Camara titulo="Foto de entrada" pie="pie" enviando={false} onFoto={vi.fn()} onCancelar={vi.fn()} />);
     await waitFor(() => expect((screen.getByRole("button", { name: "Tomar la foto" }) as HTMLButtonElement).disabled).toBe(false));
     unmount();
     expect(stop).toHaveBeenCalled();

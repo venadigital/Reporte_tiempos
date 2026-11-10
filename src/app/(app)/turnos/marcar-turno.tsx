@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Camara } from "@/components/camara";
 import { llevaFoto, type Accion } from "@/lib/turnos";
 import { marcar } from "./actions";
-import { PantallaTurno, type Aviso, type VistaTurno } from "./pantalla-turno";
+import { PantallaTurno, type AvisoTurno, type VistaTurno } from "./pantalla-turno";
 
 type Props = {
   vista: VistaTurno;
@@ -16,7 +16,7 @@ type Props = {
 
 export function MarcarTurno({ vista, nombre, fecha, saludo, textoFoto }: Props) {
   const [camara, setCamara] = useState<Accion | null>(null);
-  const [aviso, setAviso] = useState<Aviso | null>(null);
+  const [aviso, setAviso] = useState<AvisoTurno | null>(null);
   const [enviando, iniciar] = useTransition();
 
   function enviar(accion: Accion, foto?: Blob) {
@@ -54,6 +54,7 @@ export function MarcarTurno({ vista, nombre, fecha, saludo, textoFoto }: Props) 
       />
       {camara && (
         <Camara
+          titulo={camara === "entrada" ? "Foto de entrada" : "Foto de salida"}
           pie={textoFoto}
           enviando={enviando}
           onFoto={(foto) => enviar(camara, foto)}
