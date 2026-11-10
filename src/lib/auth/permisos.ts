@@ -38,5 +38,8 @@ export function menu(perfil: Pick<Perfil, "role" | "marca_turno">): EntradaMenu[
   if (veReporte(perfil.role)) {
     entradas.push({ href: "/horas", texto: "Horas del personal" });
   }
+  if (administraEmpleados(perfil.role)) {
+    entradas.push({ href: "/empleados", texto: "Empleados" });
+  }
   return entradas;
 }

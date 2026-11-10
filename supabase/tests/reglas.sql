@@ -299,6 +299,24 @@ select pg_temp.eq('C18 el coordinador ve el listado con las correcciones',
   'app:420:60,ajuste:480:0') from _u;
 
 -- ════════════════════════════════════════════════════════════════════════════
+-- E · Listado de empleados
+-- ════════════════════════════════════════════════════════════════════════════
+select pg_temp.err('E01 el coordinador no ve el listado de empleados',
+  pg_temp.como(c, 'select count(*)::text from public.empleados_listar()'), 'Solo el administrador') from _u;
+select pg_temp.err('E02 el empleado tampoco',
+  pg_temp.como(e, 'select count(*)::text from public.empleados_listar()'), 'Solo el administrador') from _u;
+select pg_temp.bien('E03 (preparación) el administrador le asigna PIN a otra persona',
+  pg_temp.como(a, format('select public.turno_pin_asignar(%L, %L)::text', f, '7777'))) from _u;
+select pg_temp.eq('E04 el administrador ve el correo y si tiene PIN, nunca el valor',
+  pg_temp.como(a, format($q$select correo || ':' || tiene_pin || ':' || pin_bloqueado
+                               from public.empleados_listar() where id = %L$q$, f)),
+  'fabio.fijo@prueba.test:true:false') from _u;
+select pg_temp.eq('E05 el listado trae a todos, también a la cuenta del quiosco',
+  pg_temp.como(a, format($q$select count(*)::text from public.empleados_listar() where id in (%L, %L, %L, %L, %L)$q$, a, c, e, f, q)), '5') from _u;
+select pg_temp.eq('E06 sin sesión no se puede listar',
+  has_function_privilege('anon', 'public.empleados_listar()', 'execute')::text, 'false');
+
+-- ════════════════════════════════════════════════════════════════════════════
 -- I · Interruptor y ficha del empleado
 -- ════════════════════════════════════════════════════════════════════════════
 select pg_temp.err('I01 el coordinador no edita empleados',

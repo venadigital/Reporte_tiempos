@@ -14,7 +14,7 @@ Storage) · Vercel. Web instalable (PWA): la misma app sirve en celular y en com
 - [x] Reglas de marcación (celular y quiosco), correcciones y cálculo de horas, con pruebas
 - [x] Inicio de sesión y pantalla de inicio por rol
 - [x] Pantalla "Mi turno" con cámara
-- [ ] Ficha del empleado (interruptor y PIN)
+- [x] Empleados: alta de cuentas, ficha, interruptor y PIN
 - [ ] Quiosco
 - [ ] Reporte, detalle y correcciones
 - [ ] Borrado automático de fotos
@@ -60,6 +60,19 @@ cp .env.example .env.local   # y llenar las llaves del proyecto de Supabase
 npm run dev
 npm test                     # pruebas de pantallas y reglas de la aplicación
 ```
+
+## Primer administrador
+
+Las cuentas las crea el administrador desde la pantalla **Empleados**. El primero se crea
+una sola vez desde la terminal (pide nombre, correo y contraseña):
+
+```bash
+node scripts/crear-admin.mjs
+```
+
+Necesita `SUPABASE_SERVICE_ROLE_KEY` en `.env.local` (Supabase → Project Settings → API
+keys). Esa llave se salta todas las políticas: nunca va en el navegador ni en el repositorio.
+En Supabase conviene desactivar el registro público (Authentication → Sign In / Providers).
 
 ## Base de datos
 
