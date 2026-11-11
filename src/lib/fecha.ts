@@ -7,8 +7,8 @@
 
 export const ZONA = "America/Bogota";
 
-const DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
-const MESES = [
+export const DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+export const MESES = [
   "enero", "febrero", "marzo", "abril", "mayo", "junio",
   "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
 ];
@@ -59,7 +59,7 @@ export function partes(valor: Instante, zona: string = ZONA): Partes {
   };
 }
 
-const dos = (n: number) => String(n).padStart(2, "0");
+export const dos = (n: number) => String(n).padStart(2, "0");
 
 /** "2026-08-26": el día calendario en la zona del negocio. */
 export function diaISO(valor: Instante, zona: string = ZONA): string {
@@ -121,4 +121,31 @@ export function horaConDia(valor: Instante, ahora: Instante, zona: string = ZONA
 /** Primer nombre, para el saludo. */
 export function primerNombre(nombre: string): string {
   return nombre.trim().split(/\s+/)[0] ?? nombre;
+}
+
+/** Valor para un campo datetime-local: "2026-11-02T22:00" en la zona del negocio. */
+export function paraCampo(valor: Instante, zona: string = ZONA): string {
+  const p = partes(valor, zona);
+  return `${p.anio}-${dos(p.mes)}-${dos(p.dia)}T${dos(p.hora)}:${dos(p.minuto)}`;
+}
+
+/**
+ * Convierte "fecha + hora" escrita en la zona del negocio a un instante.
+ * Sin la zona explícita, una entrada de las 7 a. m. quedaría guardada como las 2 a. m.
+ * Devuelve null si el texto no es una fecha y hora válidas.
+ */
+export function instanteEnZona(local: string, zona: string = ZONA): string | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(local);
+  if (!m) return null;
+  const [anio, mes, dia, hora, minuto] = m.slice(1).map(Number);
+  const pedido = Date.UTC(anio, mes - 1, dia, hora, minuto);
+  if (Number.isNaN(pedido) || mes > 12 || dia > 31 || hora > 23 || minuto > 59) return null;
+
+  // Se ajusta hasta que el instante, visto en la zona, diga la hora pedida.
+  let instante = pedido;
+  for (let i = 0; i < 2; i++) {
+    const p = partes(instante, zona);
+    instante += pedido - Date.UTC(p.anio, p.mes - 1, p.dia, p.hora, p.minuto);
+  }
+  return new Date(instante).toISOString();
 }
