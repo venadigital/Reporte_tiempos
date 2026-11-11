@@ -40,6 +40,7 @@ export function menu(perfil: Pick<Perfil, "role" | "marca_turno">): EntradaMenu[
   }
   if (administraEmpleados(perfil.role)) {
     entradas.push({ href: "/empleados", texto: "Empleados" });
+    entradas.push({ href: "/configuracion", texto: "Configuración" });
   }
   return entradas;
 }

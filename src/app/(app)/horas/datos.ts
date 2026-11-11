@@ -21,6 +21,8 @@ export type Reporte = {
   turnos: TurnoListado[];
   abiertos: TurnoAbierto[];
   recargos: Recargo[];
+  /** La última fecha de festivo cargada; después de ella no se reconoce ninguno. */
+  ultimoFestivo: string | null;
 };
 
 /** Guardia de las páginas del reporte. La base tiene el suyo (políticas de filas). */
@@ -53,14 +55,15 @@ export async function cargarReporte(periodo: Periodo, perfilId?: string): Promis
     consultaAbiertos = consultaAbiertos.eq("perfil_id", perfilId);
   }
 
-  const [personas, horas, turnos, abiertos, recargos] = await Promise.all([
+  const [personas, horas, turnos, abiertos, recargos, festivo] = await Promise.all([
     consultaPersonas,
     supabase.rpc("turnos_horas", { p_desde: desdeSemanas, p_hasta: hastaSemanas, p_perfil: perfilId ?? null }),
     supabase.rpc("turnos_listar", { p_desde: desde, p_hasta: hasta, p_perfil: perfilId ?? null }),
     consultaAbiertos,
     supabase.from("recargo").select("concepto, desde, porcentaje"),
+    supabase.from("festivo").select("fecha").order("fecha", { ascending: false }).limit(1).maybeSingle(),
   ]);
-  if (personas.error || horas.error || turnos.error || abiertos.error || recargos.error) return null;
+  if (personas.error || horas.error || turnos.error || abiertos.error || recargos.error || festivo.error) return null;
 
   const filasSemanas = (horas.data ?? []) as FilaHoras[];
   return {
@@ -74,5 +77,6 @@ export async function cargarReporte(periodo: Periodo, perfilId?: string): Promis
     turnos: (turnos.data ?? []) as TurnoListado[],
     abiertos: (abiertos.data ?? []) as TurnoAbierto[],
     recargos: (recargos.data ?? []) as Recargo[],
+    ultimoFestivo: (festivo.data as { fecha: string } | null)?.fecha ?? null,
   };
 }

@@ -19,6 +19,9 @@ Storage) · Vercel. Web instalable (PWA): la misma app sirve en celular y en com
 - [x] Reporte de horas, detalle por persona con fotos y correcciones con bitácora
 - [x] Borrado automático de fotos vencidas (tarea diaria)
 - [x] Excel del periodo, con horas en decimales
+- [x] Pantalla de configuración y aviso de festivos por agotarse
+- [x] Íconos para instalar la app en iPhone, Android y computador
+- [x] Desplegada en Vercel
 
 ## Las reglas que sostienen todo
 

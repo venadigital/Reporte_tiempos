@@ -317,6 +317,34 @@ select pg_temp.eq('E06 sin sesión no se puede listar',
   has_function_privilege('anon', 'public.empleados_listar()', 'execute')::text, 'false');
 
 -- ════════════════════════════════════════════════════════════════════════════
+-- G · Configuración
+-- ════════════════════════════════════════════════════════════════════════════
+select pg_temp.err('G01 el coordinador no cambia la configuración',
+  pg_temp.como(c, 'select public.configuracion_actualizar(420, null, 14, 360, 45, 5, 15)::text'), 'Solo el administrador') from _u;
+select pg_temp.err('G02 el empleado tampoco, ni escribiendo la tabla directamente',
+  pg_temp.como(e, 'update public.configuracion set fotos_dias = 1 returning fotos_dias::text'), 'permission denied') from _u;
+select pg_temp.err('G03 la jornada diaria tiene que ser razonable',
+  pg_temp.como(a, 'select public.configuracion_actualizar(30, null, 14, 360, 45, 5, 15)::text'), 'entre 1 y 12 horas') from _u;
+select pg_temp.err('G04 el máximo de un turno abierto debe ser mayor que la jornada',
+  pg_temp.como(a, 'select public.configuracion_actualizar(480, null, 8, 360, 45, 5, 15)::text'), 'mayor que la jornada') from _u;
+select pg_temp.err('G05 las fotos no se guardan cero días',
+  pg_temp.como(a, 'select public.configuracion_actualizar(480, null, 14, 360, 0, 5, 15)::text'), 'entre 1 y 3650') from _u;
+select pg_temp.bien('G06 el administrador guarda la configuración',
+  pg_temp.como(a, 'select public.configuracion_actualizar(420, 21, 16, 300, 30, 3, 20)::text')) from _u;
+select pg_temp.eq('G07 quedó guardada',
+  (select concat_ws(' ', jornada_diaria_min, hora_cierre_operacion, turno_max_horas, aviso_sin_almuerzo_min, fotos_dias, pin_intentos_max, pin_bloqueo_min) from public.configuracion),
+  '420 21 16 300 30 3 20');
+select pg_temp.eq('G08 la bitácora deja el antes, el después y quién',
+  (select concat_ws(' ', l.actor_id = a, l.before ->> 'jornada_diaria_min', l.after ->> 'jornada_diaria_min', l.before ->> 'fotos_dias', l.after ->> 'fotos_dias')
+     from public.audit_log l where l.action = 'configuracion.actualizar'), 't 480 420 45 30') from _u;
+select pg_temp.bien('G09 la regla de cierre se puede quitar',
+  pg_temp.como(a, 'select public.configuracion_actualizar(480, null, 14, 360, 45, 5, 15)::text')) from _u;
+select pg_temp.eq('G10 vuelve a quedar sin regla de cierre y con 45 días de fotos',
+  (select (hora_cierre_operacion is null)::text || ' ' || fotos_dias from public.configuracion), 'true 45');
+select pg_temp.eq('G11 sin sesión no se puede guardar',
+  has_function_privilege('anon', 'public.configuracion_actualizar(integer,integer,integer,integer,integer,integer,integer)', 'execute')::text, 'false');
+
+-- ════════════════════════════════════════════════════════════════════════════
 -- I · Interruptor y ficha del empleado
 -- ════════════════════════════════════════════════════════════════════════════
 select pg_temp.err('I01 el coordinador no edita empleados',

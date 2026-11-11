@@ -107,7 +107,7 @@ describe("pantalla de inicio y menú por rol", () => {
     expect(menu({ role: "empleado", marca_turno: true }).map((e) => e.href)).toEqual(["/turnos"]);
     expect(menu({ role: "empleado", marca_turno: false })).toEqual([]);
     expect(menu({ role: "coordinador", marca_turno: true }).map((e) => e.href)).toEqual(["/turnos", "/horas"]);
-    expect(menu({ role: "admin", marca_turno: false }).map((e) => e.href)).toEqual(["/horas", "/empleados"]);
+    expect(menu({ role: "admin", marca_turno: false }).map((e) => e.href)).toEqual(["/horas", "/empleados", "/configuracion"]);
     expect(menu({ role: "quiosco", marca_turno: false })).toEqual([]);
   });
 });

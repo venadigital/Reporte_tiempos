@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { diaISO } from "@/lib/fecha";
 import { armarAvisos, quienesSalen, recargoVigente, sumar, type Recargo } from "@/lib/horas";
-import { consulta, leerPeriodo, textoRango } from "@/lib/periodo";
+import { consulta, diaLargo, leerPeriodo, textoRango } from "@/lib/periodo";
+import { festivosPorAgotarse } from "@/lib/configuracion-reglas";
 import { botonCompacto, tituloGrande } from "@/components/ui";
 import { cargarReporte, exigirReporte } from "./datos";
 import { ErrorDeCarga, PorRevisar, SelectorPeriodo, TablaHoras, type FilaTabla, type Rotulos } from "./vistas";
@@ -85,6 +86,14 @@ export default async function PaginaHoras({
   return (
     <main className="mx-auto flex w-full max-w-[1120px] flex-col gap-6 px-4 py-9 sm:px-6">
       {encabezado}
+      {festivosPorAgotarse(reporte.ultimoFestivo, diaISO(reporte.ahora, reporte.config.zona_horaria)) && (
+        <p role="alert" className="rounded-2xl bg-aviso-fondo px-4 py-3.5 text-[15px] leading-5 text-aviso-texto">
+          {reporte.ultimoFestivo
+            ? `Los festivos están cargados solo hasta el ${diaLargo(reporte.ultimoFestivo).replace(/^\S+ /, "")} de ${reporte.ultimoFestivo.slice(0, 4)}.`
+            : "No hay festivos cargados."}{" "}
+          Después de esa fecha las horas de un festivo saldrían como día normal. Hay que volver a generarlos.
+        </p>
+      )}
       <PorRevisar avisos={avisos} enlace={(a) => `/horas/${a.perfilId}?${consulta(a.periodo)}`} />
       <TablaHoras
         filas={filas}
