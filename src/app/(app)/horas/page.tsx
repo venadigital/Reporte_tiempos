@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { diaISO } from "@/lib/fecha";
-import { armarAvisos, recargoVigente, sumar, type Recargo } from "@/lib/horas";
+import { armarAvisos, quienesSalen, recargoVigente, sumar, type Recargo } from "@/lib/horas";
 import { consulta, leerPeriodo, textoRango } from "@/lib/periodo";
-import { tituloGrande } from "@/components/ui";
+import { botonCompacto, tituloGrande } from "@/components/ui";
 import { cargarReporte, exigirReporte } from "./datos";
 import { ErrorDeCarga, PorRevisar, SelectorPeriodo, TablaHoras, type FilaTabla, type Rotulos } from "./vistas";
 
@@ -32,9 +32,18 @@ export default async function PaginaHoras({
 
   const encabezado = (
     <>
-      <div className="flex flex-col gap-1">
-        <h1 className={tituloGrande}>Horas del personal</h1>
-        <p className="text-base text-suave">{textoRango(periodo)}</p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className={tituloGrande}>Horas del personal</h1>
+          <p className="text-base text-suave">{textoRango(periodo)}</p>
+        </div>
+        {/* Enlace simple, no de la aplicación: es una descarga, no una página */}
+        <a href={`/horas/exportar?${consulta(periodo)}`} download className={botonCompacto}>
+          <svg aria-hidden viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 4v11M7.5 11l4.5 4.5 4.5-4.5M5 19.5h14" />
+          </svg>
+          Descargar Excel
+        </a>
       </div>
       <SelectorPeriodo periodo={periodo} base="/horas" />
     </>
@@ -49,18 +58,13 @@ export default async function PaginaHoras({
     );
   }
 
-  // Una fila por persona que marca (aunque esté en cero: que alguien aparezca sin
-  // horas es información), más quien tenga turnos en el periodo aunque ya no marque.
-  const conTurnos = new Set([...reporte.filas.map((f) => f.perfil_id), ...reporte.turnos.map((t) => t.perfil_id)]);
-  const filas: FilaTabla[] = reporte.personas
-    .filter((p) => (p.marca_turno && p.activo) || conTurnos.has(p.id))
-    .map((p) => ({
-      id: p.id,
-      nombre: p.nombre,
-      cargo: p.cargo,
-      turnos: reporte.turnos.filter((t) => t.perfil_id === p.id).length,
-      columnas: sumar(reporte.filas.filter((f) => f.perfil_id === p.id)),
-    }));
+  const filas: FilaTabla[] = quienesSalen(reporte.personas, reporte.filas, reporte.turnos).map((p) => ({
+    id: p.id,
+    nombre: p.nombre,
+    cargo: p.cargo,
+    turnos: reporte.turnos.filter((t) => t.perfil_id === p.id).length,
+    columnas: sumar(reporte.filas.filter((f) => f.perfil_id === p.id)),
+  }));
 
   const avisos = armarAvisos({
     nombres: new Map(reporte.personas.map((p) => [p.id, p.nombre])),

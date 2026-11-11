@@ -225,3 +225,17 @@ export function recargoVigente(recargos: Recargo[], concepto: string, fecha: str
     .sort((a, b) => b.desde.localeCompare(a.desde));
   return vigentes.length ? Number(vigentes[0].porcentaje) : null;
 }
+
+/**
+ * Quién sale en el reporte: una fila por persona que marca (aunque esté en cero:
+ * que alguien aparezca sin horas es información), más quien tenga turnos en el
+ * periodo aunque ya no marque. La pantalla y el Excel usan esta misma lista.
+ */
+export function quienesSalen<P extends { id: string; marca_turno: boolean; activo: boolean }>(
+  personas: P[],
+  filas: FilaHoras[],
+  turnos: TurnoListado[],
+): P[] {
+  const conTurnos = new Set([...filas.map((f) => f.perfil_id), ...turnos.map((t) => t.perfil_id)]);
+  return personas.filter((p) => (p.marca_turno && p.activo) || conTurnos.has(p.id));
+}

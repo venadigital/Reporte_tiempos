@@ -17,8 +17,8 @@ Storage) · Vercel. Web instalable (PWA): la misma app sirve en celular y en com
 - [x] Empleados: alta de cuentas, ficha, interruptor y PIN
 - [x] Quiosco: lista, PIN, cámara y confirmación en el computador compartido
 - [x] Reporte de horas, detalle por persona con fotos y correcciones con bitácora
-- [ ] Borrado automático de fotos
-- [ ] Excel
+- [x] Borrado automático de fotos vencidas (tarea diaria)
+- [x] Excel del periodo, con horas en decimales
 
 ## Las reglas que sostienen todo
 
@@ -81,6 +81,22 @@ node scripts/crear-admin.mjs
 Necesita `SUPABASE_SERVICE_ROLE_KEY` en `.env.local` (Supabase → Project Settings → API
 keys). Esa llave se salta todas las políticas: nunca va en el navegador ni en el repositorio.
 En Supabase conviene desactivar el registro público (Authentication → Sign In / Providers).
+
+## Fotos vencidas
+
+La foto de una cara es un dato sensible: se borra sola a los días que diga
+`configuracion.fotos_dias` (45). El turno se conserva siempre. Todos los días a las
+2:40 a. m. de Colombia, `pg_cron` llama a la función de servidor
+`supabase/functions/turnos-limpiar-fotos`, que borra primero los archivos y después limpia
+las rutas. El secreto que autoriza esa llamada se genera en la migración y vive solo en el
+Vault de Supabase.
+
+En un proyecto nuevo hay que hacer dos cosas una sola vez: desplegar la función (sin
+verificación de JWT: valida su propio secreto) y guardar la dirección del proyecto:
+
+```sql
+select vault.create_secret('https://<proyecto>.supabase.co', 'project_url');
+```
 
 ## Base de datos
 

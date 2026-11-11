@@ -111,6 +111,21 @@ select pg_temp.eq('S12 sin sesión no se ve nada del almacén',
   (select count(*)::text from pg_policies
     where schemaname = 'storage' and tablename = 'objects' and policyname like 'turnos_obj_%' and 'anon' = any (roles)), '0');
 
+-- La tarea diaria de limpieza: solo la llave de servicio puede preguntar por el secreto
+select pg_temp.eq('S13 el secreto de la tarea no lo puede comprobar un usuario ni un visitante',
+  concat_ws(' ',
+    has_function_privilege('anon', 'public.cron_secreto_valido(text)', 'execute'),
+    has_function_privilege('authenticated', 'public.cron_secreto_valido(text)', 'execute'),
+    has_function_privilege('authenticated', 'private.turnos_limpiar_fotos()', 'execute'),
+    has_function_privilege('service_role', 'public.cron_secreto_valido(text)', 'execute')), 'f f f t');
+select pg_temp.eq('S14 un secreto equivocado o vacío no pasa; el del Vault sí',
+  concat_ws(' ',
+    public.cron_secreto_valido(repeat('0', 64)),
+    public.cron_secreto_valido(''),
+    public.cron_secreto_valido((select decrypted_secret from vault.decrypted_secrets where name = 'turnos_cron_secreto'))), 'f f t');
+select pg_temp.eq('S15 la limpieza está programada todos los días a las 2:40 a. m. de Colombia',
+  (select schedule || ' ' || active from cron.job where jobname = 'turnos-limpiar-fotos'), '40 7 * * * true');
+
 select count(*) filter (where ok) as pasaron,
        count(*) filter (where not ok) as fallaron,
        coalesce(jsonb_agg(jsonb_build_object('prueba', prueba, 'detalle', detalle) order by n)
