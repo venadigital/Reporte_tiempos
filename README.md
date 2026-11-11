@@ -15,7 +15,7 @@ Storage) · Vercel. Web instalable (PWA): la misma app sirve en celular y en com
 - [x] Inicio de sesión y pantalla de inicio por rol
 - [x] Pantalla "Mi turno" con cámara
 - [x] Empleados: alta de cuentas, ficha, interruptor y PIN
-- [ ] Quiosco
+- [x] Quiosco: lista, PIN, cámara y confirmación en el computador compartido
 - [ ] Reporte, detalle y correcciones
 - [ ] Borrado automático de fotos
 - [ ] Excel
